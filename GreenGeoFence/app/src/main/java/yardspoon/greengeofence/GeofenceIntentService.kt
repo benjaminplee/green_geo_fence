@@ -34,8 +34,10 @@ class GeofenceIntentService(name: String) : IntentService(name) {
     }
 
     private fun notify(title: String, text: String) {
-        Log.i(TAG, title + " - " + text)
+        val msg = "$title - $text"
+        Log.i(TAG, msg)
         applicationContext.launchNotification(title, text)
+        appEventBus.onNext(msg)
     }
 
 }

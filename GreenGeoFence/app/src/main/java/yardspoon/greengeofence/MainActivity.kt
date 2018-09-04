@@ -16,11 +16,11 @@ import kotlinx.android.synthetic.main.activity_main.*
 const val ONE_HOUR_Ms = 60 * 60 * 1000
 const val TEN_MINUTES_Ms = 10 * 60 * 1000
 const val ONE_MINUTE_Ms = 60 * 1000
-const val FIFTEEN_SECONDS_Ms = 15 * 1000
+const val FIVE_SECONDS_Ms = 5 * 1000
 
-val BLOCK_A = Fence("BLOCK-A", 38.6233567, -90.1985937, 72F, ONE_HOUR_Ms.toLong(), ONE_MINUTE_Ms, FIFTEEN_SECONDS_Ms)
-val BLOCK_B = Fence("BLOCK-B", 38.62532, -90.1966915, 100F, ONE_HOUR_Ms.toLong(), ONE_MINUTE_Ms, FIFTEEN_SECONDS_Ms)
-val BLOCK_C = Fence("BLOCK-C", 38.623025, -90.1961385, 115F, ONE_HOUR_Ms.toLong(), ONE_MINUTE_Ms, FIFTEEN_SECONDS_Ms)
+val BLOCK_A = Fence("BLOCK-A", 38.6233567, -90.1985937, 72F, ONE_HOUR_Ms.toLong(), ONE_MINUTE_Ms, FIVE_SECONDS_Ms)
+val BLOCK_B = Fence("BLOCK-B", 38.62532, -90.1966915, 100F, ONE_HOUR_Ms.toLong(), ONE_MINUTE_Ms, FIVE_SECONDS_Ms)
+val BLOCK_C = Fence("BLOCK-C", 38.623025, -90.1961385, 115F, ONE_HOUR_Ms.toLong(), ONE_MINUTE_Ms, FIVE_SECONDS_Ms)
 val FENCES = listOf(BLOCK_A, BLOCK_B, BLOCK_C)
 
 class MainActivity : AppCompatActivity() {
@@ -46,7 +46,6 @@ class MainActivity : AppCompatActivity() {
         geofencingClient.addGeofences(buildGeofenceRequest(FENCES), geofencePendingIntent)?.run {
             addOnSuccessListener {
                 showMsg("Added geofences")
-                this@MainActivity.launchNotification("Added Geofences", yardspoon.greengeofence.FENCES.joinToString("|") { it.id })
             }
             addOnFailureListener {
                 showMsg("Failure adding geofences: ${it.message}")
@@ -54,25 +53,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showMsg(msg: String) {
-        log(msg)
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
-    }
-
-    private fun log(msg: String) {
-        Log.i("MainActivity", msg)
-    }
-
-    override fun onDestroy() {
-        geofencingClient.removeGeofences(geofencePendingIntent)?.run {
+    private fun removeGeoFences() {
+        geofencingClient.removeGeofences(FENCES.map { it.id })?.run {
             addOnSuccessListener {
-                log("Removed geofences")
+                showMsg("Removed geofences")
             }
             addOnFailureListener {
-                log("Error removing geofences: ${it.message}")
+                showMsg("Error removing geofences: ${it.message}")
             }
         }
-        super.onDestroy()
+
+    }
+
+    private fun showMsg(msg: String) {
+        Log.i("MainActivity", msg)
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -86,7 +81,10 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_remove_all -> {
+                removeGeoFences()
+                return true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
